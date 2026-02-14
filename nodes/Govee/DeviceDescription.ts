@@ -19,6 +19,12 @@ export const deviceOperations: INodeProperties[] = [
 				action: 'Control a device',
 			},
 			{
+				name: 'Get',
+				value: 'get',
+				description: 'Get a single device by its MAC address',
+				action: 'Get a device',
+			},
+			{
 				name: 'Get Many',
 				value: 'getAll',
 				description: 'Get a list of many devices',
@@ -30,6 +36,12 @@ export const deviceOperations: INodeProperties[] = [
 				description: 'Get the current state of a device',
 				action: 'Get device state',
 			},
+			{
+				name: 'Multi-Command',
+				value: 'multiControl',
+				description: 'Send multiple commands to a device in sequence',
+				action: 'Send multiple commands to a device',
+			},
 		],
 		default: 'getAll',
 	},
@@ -37,40 +49,44 @@ export const deviceOperations: INodeProperties[] = [
 
 export const deviceFields: INodeProperties[] = [
 	// ----------------------------------
-	//         device: getAll
-	// ----------------------------------
-	// No additional fields needed — returns all devices
-
-	// ----------------------------------
-	//         device: getState
+	//   device: shared fields
 	// ----------------------------------
 	{
-		displayName: 'Device MAC Address',
+		displayName: 'Device Name or ID',
 		name: 'device',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getDevices',
+		},
 		required: true,
 		default: '',
 		displayOptions: {
 			show: {
 				resource: ['device'],
-				operation: ['getState', 'control'],
+				operation: ['get', 'getState', 'control', 'multiControl'],
 			},
 		},
-		description: 'The MAC address of the Govee device (e.g., AA:BB:CC:DD:EE:FF:00:11)',
+		description:
+			'The Govee device to target. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
 	{
-		displayName: 'Device Model',
+		displayName: 'Model Name or ID',
 		name: 'model',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getDeviceModels',
+			loadOptionsDependsOn: ['device'],
+		},
 		required: true,
 		default: '',
 		displayOptions: {
 			show: {
 				resource: ['device'],
-				operation: ['getState', 'control'],
+				operation: ['getState', 'control', 'multiControl'],
 			},
 		},
-		description: 'The model number of the Govee device (e.g., H6159)',
+		description:
+			'The model of the Govee device. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
 
 	// ----------------------------------
@@ -155,16 +171,12 @@ export const deviceFields: INodeProperties[] = [
 		description: 'Brightness level from 0 (off) to 100 (max)',
 	},
 
-	// Color command values
+	// Color command value — color picker
 	{
-		displayName: 'Red',
-		name: 'colorR',
-		type: 'number',
+		displayName: 'Color',
+		name: 'colorValue',
+		type: 'color',
 		required: true,
-		typeOptions: {
-			minValue: 0,
-			maxValue: 255,
-		},
 		displayOptions: {
 			show: {
 				resource: ['device'],
@@ -172,54 +184,21 @@ export const deviceFields: INodeProperties[] = [
 				command: ['color'],
 			},
 		},
-		default: 255,
-		description: 'Red component of the RGB color (0–255)',
-	},
-	{
-		displayName: 'Green',
-		name: 'colorG',
-		type: 'number',
-		required: true,
-		typeOptions: {
-			minValue: 0,
-			maxValue: 255,
-		},
-		displayOptions: {
-			show: {
-				resource: ['device'],
-				operation: ['control'],
-				command: ['color'],
-			},
-		},
-		default: 255,
-		description: 'Green component of the RGB color (0–255)',
-	},
-	{
-		displayName: 'Blue',
-		name: 'colorB',
-		type: 'number',
-		required: true,
-		typeOptions: {
-			minValue: 0,
-			maxValue: 255,
-		},
-		displayOptions: {
-			show: {
-				resource: ['device'],
-				operation: ['control'],
-				command: ['color'],
-			},
-		},
-		default: 255,
-		description: 'Blue component of the RGB color (0–255)',
+		default: '#FF0000',
+		description:
+			'The color to set on the device. The hex value is automatically converted to RGB for the Govee API.',
 	},
 
-	// Color Temperature command value
+	// Color temperature command value
 	{
 		displayName: 'Color Temperature',
 		name: 'colorTemValue',
 		type: 'number',
 		required: true,
+		typeOptions: {
+			minValue: 2000,
+			maxValue: 9000,
+		},
 		displayOptions: {
 			show: {
 				resource: ['device'],
@@ -227,7 +206,55 @@ export const deviceFields: INodeProperties[] = [
 				command: ['colorTem'],
 			},
 		},
-		default: 5000,
-		description: 'Color temperature value (valid range depends on device, typically 2000–9000)',
+		default: 4000,
+		description:
+			"Color temperature in Kelvin (typical range: 2000-9000). Check your device's supported range from the Get Many operation's properties.colorTem.range field.",
+	},
+
+	// ----------------------------------
+	//     device: multiControl
+	// ----------------------------------
+	{
+		displayName: 'Commands (JSON)',
+		name: 'commands',
+		type: 'json',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['multiControl'],
+			},
+		},
+		default:
+			'[{"name": "turn", "value": "on"}, {"name": "brightness", "value": 80}]',
+		description:
+			'JSON array of commands to send sequentially. Each command: {"name": "turn|brightness|color|colorTem", "value": ...}. Color example: {"name": "color", "value": {"r": 255, "g": 0, "b": 0}}. Rate limit: 10 commands/min/device.',
+	},
+
+	// ----------------------------------
+	//     device: control options
+	// ----------------------------------
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['control', 'multiControl'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Validate Command',
+				name: 'validateCommand',
+				type: 'boolean',
+				default: false,
+				description:
+					'Whether to validate that the device supports the command before sending it. Makes an extra API call to check the device capabilities.',
+			},
+		],
 	},
 ];

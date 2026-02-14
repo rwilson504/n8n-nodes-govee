@@ -31,12 +31,15 @@ export const applianceOperations: INodeProperties[] = [
 
 export const applianceFields: INodeProperties[] = [
 	// ----------------------------------
-	//         appliance: control
+	//   appliance: shared fields
 	// ----------------------------------
 	{
-		displayName: 'Device MAC Address',
+		displayName: 'Device Name or ID',
 		name: 'device',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getAppliances',
+		},
 		required: true,
 		default: '',
 		displayOptions: {
@@ -45,12 +48,17 @@ export const applianceFields: INodeProperties[] = [
 				operation: ['control'],
 			},
 		},
-		description: 'The MAC address of the Govee appliance',
+		description:
+			'The Govee appliance to target. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
 	{
-		displayName: 'Device Model',
+		displayName: 'Model Name or ID',
 		name: 'model',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getApplianceModels',
+			loadOptionsDependsOn: ['device'],
+		},
 		required: true,
 		default: '',
 		displayOptions: {
@@ -59,12 +67,21 @@ export const applianceFields: INodeProperties[] = [
 				operation: ['control'],
 			},
 		},
-		description: 'The model number of the Govee appliance (e.g., H7121)',
+		description:
+			'The model of the Govee appliance. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
+
+	// ----------------------------------
+	//     appliance: control
+	// ----------------------------------
 	{
-		displayName: 'Command',
+		displayName: 'Command Name or ID',
 		name: 'command',
 		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getApplianceCommands',
+			loadOptionsDependsOn: ['device'],
+		},
 		required: true,
 		displayOptions: {
 			show: {
@@ -72,20 +89,9 @@ export const applianceFields: INodeProperties[] = [
 				operation: ['control'],
 			},
 		},
-		options: [
-			{
-				name: 'Mode',
-				value: 'mode',
-				description: 'Set the mode of the appliance',
-			},
-			{
-				name: 'Turn',
-				value: 'turn',
-				description: 'Turn the appliance on or off',
-			},
-		],
-		default: 'turn',
-		description: 'The command to execute on the appliance',
+		default: '',
+		description:
+			'The command to execute on the appliance. Only commands supported by the selected device are shown. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
 
 	// Turn command value
@@ -109,11 +115,15 @@ export const applianceFields: INodeProperties[] = [
 		description: 'Whether to turn the appliance on or off',
 	},
 
-	// Mode command value
+	// Mode command value — dynamic dropdown from device capabilities
 	{
-		displayName: 'Mode Value',
+		displayName: 'Mode Name or ID',
 		name: 'modeValue',
-		type: 'number',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getApplianceModes',
+			loadOptionsDependsOn: ['device'],
+		},
 		required: true,
 		displayOptions: {
 			show: {
@@ -122,7 +132,8 @@ export const applianceFields: INodeProperties[] = [
 				command: ['mode'],
 			},
 		},
-		default: 1,
-		description: 'The mode ID to set on the appliance (get available modes from Get Many)',
+		default: '',
+		description:
+			'The mode to set on the appliance. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
 ];

@@ -29,15 +29,17 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 | Operation | Description |
 |-----------|-------------|
 | **Get Many** | List all devices associated with your Govee account |
+| **Get** | Get a single device by its MAC address |
 | **Get State** | Query the current state of a specific device (online status, power, brightness, color, color temperature) |
-| **Control** | Send a command to a device — Turn on/off, set Brightness (0–100), set Color (RGB), set Color Temperature |
+| **Control** | Send a command to a device — Turn on/off, set Brightness (0–100), set Color (visual color picker), set Color Temperature (2000–9000K) |
+| **Multi-Command** | Send multiple commands to a device in sequence (e.g., turn on + set color + set brightness) |
 
 ### Appliance (Humidifiers, Purifiers, etc.)
 
 | Operation | Description |
 |-----------|-------------|
 | **Get Many** | List all appliances associated with your Govee account |
-| **Control** | Send a command to an appliance — Turn on/off, set Mode |
+| **Control** | Send a command to an appliance — Turn on/off, set Mode (dynamically loaded from device capabilities) |
 
 ## Credentials
 
@@ -73,14 +75,28 @@ In n8n, create a new **Govee API** credential and paste your API key.
 ### Turn on a light
 
 1. Set **Resource** to `Device`, **Operation** to `Control`.
-2. Enter the **Device MAC Address** and **Device Model** (from the Get Many output).
-3. Set **Command** to `Turn`, **Turn Value** to `On`.
+2. Select your device from the **Device Name or ID** dropdown (auto-populated from your Govee account).
+3. Select the **Model** (auto-populated based on your device selection).
+4. Set **Command** to `Turn`, **Turn Value** to `On`.
 
 ### Set a color
 
 1. Set **Resource** to `Device`, **Operation** to `Control`.
-2. Enter the device's MAC address and model.
-3. Set **Command** to `Color` and enter **Red**, **Green**, **Blue** values (0–255 each).
+2. Select your device and model from the dropdowns.
+3. Set **Command** to `Color` and use the **color picker** to choose your color.
+
+### Send multiple commands at once
+
+1. Set **Resource** to `Device`, **Operation** to `Multi-Command`.
+2. Select your device and model.
+3. Enter a JSON array of commands:
+   ```json
+   [{"name": "turn", "value": "on"}, {"name": "brightness", "value": 80}, {"name": "color", "value": {"r": 255, "g": 0, "b": 100}}]
+   ```
+
+### Command validation
+
+Enable **Options > Validate Command** on Control or Multi-Command operations to check that your device supports the command before sending it. This makes an extra API call but gives a clear error message if the command isn't supported.
 
 ### Rate Limits
 
@@ -96,6 +112,18 @@ The Govee API enforces rate limits:
 - [Govee Website](https://us.govee.com/)
 
 ## Version history
+
+### 0.2.0
+
+- **Dynamic device dropdowns** — devices and appliances are loaded from your Govee account, no more copy-pasting MAC addresses
+- **Dynamic model selection** — model auto-populates when you select a device
+- **Visual color picker** — choose colors with a color picker instead of entering R/G/B values
+- **Color temperature range** — min/max constrained to 2000–9000K with device-specific range info
+- **Get single device** — new Get operation to retrieve one device by MAC address
+- **Multi-Command** — send multiple commands to a device in sequence (e.g., turn on + brightness + color)
+- **Command validation** — opt-in validation checks that your device supports the command before sending
+- **Dynamic appliance modes** — mode dropdown loads available modes (Low, Medium, High, Sleep, etc.) from device capabilities
+- **Rate limit info** — documented in node description for workflow planning
 
 ### 0.1.0
 
