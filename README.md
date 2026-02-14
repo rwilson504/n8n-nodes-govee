@@ -111,6 +111,55 @@ The Govee API enforces rate limits:
 - [Govee Developer API Reference (PDF)](https://govee-public.s3.amazonaws.com/developer-docs/GoveeDeveloperAPIReference.pdf)
 - [Govee Website](https://us.govee.com/)
 
+## Development
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18+
+- A Govee Developer API Key (see [Credentials](#credentials))
+
+### Setup
+
+```bash
+git clone https://github.com/rwilson504/n8n-nodes-govee.git
+cd n8n-nodes-govee
+npm install
+npm run build
+```
+
+### API Key Configuration
+
+1. Copy the sample environment file:
+   ```bash
+   cp .env.dev.sample .env.dev
+   ```
+2. Edit `.env.dev` and replace `your-api-key-here` with your actual Govee API key.
+3. The `.env.dev` file is git-ignored so your key won't be committed.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run only unit tests (no API key needed)
+npm run test:unit
+
+# Run integration tests (requires API key in .env.dev)
+npm run test:integration
+```
+
+**Unit tests** validate utility functions like `hexToRgb` and don't require network access.
+
+**Integration tests** call the real Govee API to verify endpoint structures, response fields, and authentication. They are automatically skipped if no API key is configured. Be mindful of [rate limits](#rate-limits) — the Govee API allows 100 requests per day for appliances and 10 requests per minute for device list/control.
+
+### Linting
+
+```bash
+npm run lint
+npm run lint:fix
+```
+
 ## Version history
 
 ### 0.2.0

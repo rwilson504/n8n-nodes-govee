@@ -136,4 +136,24 @@ export const applianceFields: INodeProperties[] = [
 		description:
 			'The mode to set on the appliance. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
+
+	// Generic command value — shown for any command not handled above
+	{
+		displayName: 'Command Value',
+		name: 'genericCommandValue',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['appliance'],
+				operation: ['control'],
+			},
+			hide: {
+				command: ['turn', 'mode'],
+			},
+		},
+		default: '',
+		description:
+			'The value to send with the command. Use a string, number, or JSON object depending on the command.',
+	},
 ];

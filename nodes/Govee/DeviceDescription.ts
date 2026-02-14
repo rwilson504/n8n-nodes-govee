@@ -194,6 +194,26 @@ export const deviceFields: INodeProperties[] = [
 			"Color temperature in Kelvin (typical range: 2000-9000). Check your device's supported range from the Get Many operation's properties.colorTem.range field.",
 	},
 
+	// Generic command value — shown for any command not handled above
+	{
+		displayName: 'Command Value',
+		name: 'genericCommandValue',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['control'],
+			},
+			hide: {
+				command: ['turn', 'brightness', 'color', 'colorTem'],
+			},
+		},
+		default: '',
+		description:
+			'The value to send with the command. Use a string, number, or JSON object depending on the command.',
+	},
+
 	// ----------------------------------
 	//     device: multiControl
 	// ----------------------------------

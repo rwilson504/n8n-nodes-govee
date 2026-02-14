@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-govee",
-	"version": "0.2.3",
+	"version": "0.2.4",
 	"description": "n8n community node for controlling Govee smart devices (lights, plugs, switches, appliances)",
 	"license": "MIT",
 	"homepage": "https://github.com/rwilson504/n8n-nodes-govee",
@@ -19,6 +19,9 @@
 		"build": "n8n-node build",
 		"build:watch": "tsc --watch",
 		"dev": "n8n-node dev",
+		"test": "jest",
+		"test:unit": "jest --testPathPatterns=unit",
+		"test:integration": "jest --testPathPatterns=integration",
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
 		"release": "n8n-node release"
@@ -38,9 +41,13 @@
 	},
 	"devDependencies": {
 		"@n8n/node-cli": "*",
+		"@types/jest": "^30.0.0",
+		"dotenv": "^17.3.1",
 		"eslint": "9.32.0",
+		"jest": "^30.2.0",
 		"prettier": "3.6.2",
 		"release-it": "^19.0.4",
+		"ts-jest": "^29.4.6",
 		"typescript": "5.9.2"
 	},
 	"peerDependencies": {

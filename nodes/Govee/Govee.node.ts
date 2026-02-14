@@ -410,12 +410,16 @@ export class Govee implements INodeType {
 									i,
 								) as number;
 								break;
-							default:
-								throw new NodeOperationError(
-									this.getNode(),
-									`Unknown command: ${command}`,
-									{ itemIndex: i },
-								);
+							default: {
+								// Pass-through for commands not yet handled with dedicated UI fields
+								const raw = this.getNodeParameter('genericCommandValue', i, '') as string;
+								try {
+									commandValue = JSON.parse(raw) as IDataObject;
+								} catch {
+									commandValue = raw;
+								}
+								break;
+							}
 						}
 
 						const body: IDataObject = {
@@ -545,12 +549,16 @@ export class Govee implements INodeType {
 									i,
 								) as number;
 								break;
-							default:
-								throw new NodeOperationError(
-									this.getNode(),
-									`Unknown command: ${command}`,
-									{ itemIndex: i },
-								);
+							default: {
+								// Pass-through for commands not yet handled with dedicated UI fields
+								const raw = this.getNodeParameter('genericCommandValue', i, '') as string;
+								try {
+									commandValue = JSON.parse(raw) as number;
+								} catch {
+									commandValue = raw;
+								}
+								break;
+							}
 						}
 
 						const body: IDataObject = {
