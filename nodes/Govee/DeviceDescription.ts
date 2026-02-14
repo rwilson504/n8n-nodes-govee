@@ -93,9 +93,13 @@ export const deviceFields: INodeProperties[] = [
 	//         device: control
 	// ----------------------------------
 	{
-		displayName: 'Command',
+		displayName: 'Command Name or ID',
 		name: 'command',
 		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getDeviceCommands',
+			loadOptionsDependsOn: ['device'],
+		},
 		required: true,
 		displayOptions: {
 			show: {
@@ -103,30 +107,9 @@ export const deviceFields: INodeProperties[] = [
 				operation: ['control'],
 			},
 		},
-		options: [
-			{
-				name: 'Brightness',
-				value: 'brightness',
-				description: 'Set the brightness level of the device',
-			},
-			{
-				name: 'Color',
-				value: 'color',
-				description: 'Set the RGB color of the device',
-			},
-			{
-				name: 'Color Temperature',
-				value: 'colorTem',
-				description: 'Set the color temperature of the device',
-			},
-			{
-				name: 'Turn',
-				value: 'turn',
-				description: 'Turn the device on or off',
-			},
-		],
-		default: 'turn',
-		description: 'The command to execute on the device',
+		default: '',
+		description:
+			'The command to execute on the device. Only commands supported by the selected device are shown. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
 
 	// Turn command value

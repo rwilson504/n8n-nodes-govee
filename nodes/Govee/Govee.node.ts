@@ -117,6 +117,47 @@ export class Govee implements INodeType {
 				}
 			},
 
+			async getDeviceCommands(
+				this: ILoadOptionsFunctions,
+			): Promise<INodePropertyOptions[]> {
+				const allCommands: INodePropertyOptions[] = [
+					{ name: 'Brightness', value: 'brightness' },
+					{ name: 'Color', value: 'color' },
+					{ name: 'Color Temperature', value: 'colorTem' },
+					{ name: 'Turn', value: 'turn' },
+				];
+				const deviceMac = this.getCurrentNodeParameter('device') as string;
+				if (!deviceMac) {
+					return allCommands;
+				}
+				try {
+					const response = await goveeApiRequest.call(
+						this,
+						'GET',
+						'/v1/devices',
+					);
+					const data = response.data as IDataObject | undefined;
+					const devices = (data?.devices as IDataObject[]) ?? [];
+					const device = devices.find((d) => d.device === deviceMac);
+					if (!device) {
+						return allCommands;
+					}
+					const supportCmds = (device.supportCmds as string[]) ?? [];
+					const cmdLabels: Record<string, string> = {
+						turn: 'Turn',
+						brightness: 'Brightness',
+						color: 'Color',
+						colorTem: 'Color Temperature',
+					};
+					return supportCmds.map((cmd) => ({
+						name: cmdLabels[cmd] ?? cmd,
+						value: cmd,
+					}));
+				} catch {
+					return allCommands;
+				}
+			},
+
 			async getAppliances(
 				this: ILoadOptionsFunctions,
 			): Promise<INodePropertyOptions[]> {
