@@ -1,0 +1,22 @@
+# Source files (dist/ is published via "files" in package.json)
+nodes/
+credentials/
+.github/
+.vscode/
+reference/
+
+# Config
+tsconfig.json
+eslint.config.mjs
+.prettierrc.js
+.gitignore
+
+# Docs (README.md and LICENSE.md are included automatically by npm)
+README_TEMPLATE.md
+CODE_OF_CONDUCT.md
+CHANGELOG.md
+
+# Build artifacts
+*.ts
+!*.d.ts
+*.map

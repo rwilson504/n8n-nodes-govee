@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-govee.govee",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Miscellaneous"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://govee-public.s3.amazonaws.com/developer-docs/GoveeDeveloperAPIReference.pdf"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://govee-public.s3.amazonaws.com/developer-docs/GoveeDeveloperAPIReference.pdf"
+			}
+		]
+	}
+}

@@ -1,0 +1,49 @@
+{
+	"name": "n8n-nodes-govee",
+	"version": "0.1.0",
+	"description": "n8n community node for controlling Govee smart devices (lights, plugs, switches, appliances)",
+	"license": "MIT",
+	"homepage": "https://github.com/rwilson504/n8n-nodes-govee",
+	"keywords": [
+		"n8n-community-node-package"
+	],
+	"author": {
+		"name": "Richard Wilson",
+		"email": "richard.a.wilson@microsoft.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rwilson504/n8n-nodes-govee.git"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release"
+	},
+	"files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/GoveeApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/Govee/Govee.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "*",
+		"eslint": "9.32.0",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}
