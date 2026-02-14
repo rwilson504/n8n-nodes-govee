@@ -120,16 +120,6 @@ export class Govee implements INodeType {
 			async getDeviceCommands(
 				this: ILoadOptionsFunctions,
 			): Promise<INodePropertyOptions[]> {
-				const allCommands: INodePropertyOptions[] = [
-					{ name: 'Brightness', value: 'brightness' },
-					{ name: 'Color', value: 'color' },
-					{ name: 'Color Temperature', value: 'colorTem' },
-					{ name: 'Turn', value: 'turn' },
-				];
-				const deviceMac = this.getCurrentNodeParameter('device') as string;
-				if (!deviceMac) {
-					return allCommands;
-				}
 				try {
 					const response = await goveeApiRequest.call(
 						this,
@@ -138,23 +128,37 @@ export class Govee implements INodeType {
 					);
 					const data = response.data as IDataObject | undefined;
 					const devices = (data?.devices as IDataObject[]) ?? [];
-					const device = devices.find((d) => d.device === deviceMac);
-					if (!device) {
-						return allCommands;
+					const deviceMac = this.getCurrentNodeParameter('device') as string;
+
+					if (deviceMac) {
+						const device = devices.find((d) => d.device === deviceMac);
+						if (device) {
+							const supportCmds = (device.supportCmds as string[]) ?? [];
+							console.log(`[Govee] Device ${device.deviceName} (${deviceMac}) supportCmds:`, supportCmds);
+							return supportCmds.map((cmd) => ({
+								name: cmd,
+								value: cmd,
+							}));
+						}
 					}
-					const supportCmds = (device.supportCmds as string[]) ?? [];
-					const cmdLabels: Record<string, string> = {
-						turn: 'Turn',
-						brightness: 'Brightness',
-						color: 'Color',
-						colorTem: 'Color Temperature',
-					};
-					return supportCmds.map((cmd) => ({
-						name: cmdLabels[cmd] ?? cmd,
-						value: cmd,
-					}));
+
+					// No device selected — return all unique commands across all devices
+					const allCmds = new Set<string>();
+					for (const device of devices) {
+						const cmds = (device.supportCmds as string[]) ?? [];
+						console.log(`[Govee] Device ${device.deviceName} (${device.device}) supportCmds:`, cmds);
+						for (const cmd of cmds) {
+							allCmds.add(cmd);
+						}
+					}
+					return Array.from(allCmds)
+						.sort()
+						.map((cmd) => ({
+							name: cmd,
+							value: cmd,
+						}));
 				} catch {
-					return allCommands;
+					return [];
 				}
 			},
 
@@ -211,13 +215,6 @@ export class Govee implements INodeType {
 			async getApplianceCommands(
 				this: ILoadOptionsFunctions,
 			): Promise<INodePropertyOptions[]> {
-				const deviceMac = this.getCurrentNodeParameter('device') as string;
-				if (!deviceMac) {
-					return [
-						{ name: 'Turn', value: 'turn' },
-						{ name: 'Mode', value: 'mode' },
-					];
-				}
 				try {
 					const response = await goveeApiRequest.call(
 						this,
@@ -226,27 +223,37 @@ export class Govee implements INodeType {
 					);
 					const data = response.data as IDataObject | undefined;
 					const devices = (data?.devices as IDataObject[]) ?? [];
-					const device = devices.find((d) => d.device === deviceMac);
-					if (!device) {
-						return [
-							{ name: 'Turn', value: 'turn' },
-							{ name: 'Mode', value: 'mode' },
-						];
+					const deviceMac = this.getCurrentNodeParameter('device') as string;
+
+					if (deviceMac) {
+						const device = devices.find((d) => d.device === deviceMac);
+						if (device) {
+							const supportCmds = (device.supportCmds as string[]) ?? [];
+							console.log(`[Govee] Appliance ${device.deviceName} (${deviceMac}) supportCmds:`, supportCmds);
+							return supportCmds.map((cmd) => ({
+								name: cmd,
+								value: cmd,
+							}));
+						}
 					}
-					const supportCmds = (device.supportCmds as string[]) ?? [];
-					const cmdLabels: Record<string, string> = {
-						turn: 'Turn',
-						mode: 'Mode',
-					};
-					return supportCmds.map((cmd) => ({
-						name: cmdLabels[cmd] ?? cmd,
-						value: cmd,
-					}));
+
+					// No device selected — return all unique commands across all appliances
+					const allCmds = new Set<string>();
+					for (const device of devices) {
+						const cmds = (device.supportCmds as string[]) ?? [];
+						console.log(`[Govee] Appliance ${device.deviceName} (${device.device}) supportCmds:`, cmds);
+						for (const cmd of cmds) {
+							allCmds.add(cmd);
+						}
+					}
+					return Array.from(allCmds)
+						.sort()
+						.map((cmd) => ({
+							name: cmd,
+							value: cmd,
+						}));
 				} catch {
-					return [
-						{ name: 'Turn', value: 'turn' },
-						{ name: 'Mode', value: 'mode' },
-					];
+					return [];
 				}
 			},
 
