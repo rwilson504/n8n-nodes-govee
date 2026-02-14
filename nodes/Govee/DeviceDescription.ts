@@ -25,6 +25,13 @@ export const deviceOperations: INodeProperties[] = [
 				action: 'Get a device',
 			},
 			{
+				name: 'Get Capabilities',
+				value: 'getCapabilities',
+				description:
+					'Get the supported commands and properties for a device (or all devices)',
+				action: 'Get device capabilities',
+			},
+			{
 				name: 'Get Many',
 				value: 'getAll',
 				description: 'Get a list of many devices',
@@ -68,6 +75,23 @@ export const deviceFields: INodeProperties[] = [
 		},
 		description:
 			'The Govee device to target. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+	},
+	{
+		displayName: 'Device Name or ID',
+		name: 'device',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getDevices',
+		},
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['getCapabilities'],
+			},
+		},
+		description:
+			'Optional — select a device to see only its capabilities, or leave empty to see all devices. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
 	{
 		displayName: 'Model Name or ID',

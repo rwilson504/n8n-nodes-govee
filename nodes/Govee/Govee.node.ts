@@ -134,7 +134,6 @@ export class Govee implements INodeType {
 						const device = devices.find((d) => d.device === deviceMac);
 						if (device) {
 							const supportCmds = (device.supportCmds as string[]) ?? [];
-							console.log(`[Govee] Device ${device.deviceName} (${deviceMac}) supportCmds:`, supportCmds);
 							return supportCmds.map((cmd) => ({
 								name: cmd,
 								value: cmd,
@@ -146,7 +145,6 @@ export class Govee implements INodeType {
 					const allCmds = new Set<string>();
 					for (const device of devices) {
 						const cmds = (device.supportCmds as string[]) ?? [];
-						console.log(`[Govee] Device ${device.deviceName} (${device.device}) supportCmds:`, cmds);
 						for (const cmd of cmds) {
 							allCmds.add(cmd);
 						}
@@ -229,7 +227,6 @@ export class Govee implements INodeType {
 						const device = devices.find((d) => d.device === deviceMac);
 						if (device) {
 							const supportCmds = (device.supportCmds as string[]) ?? [];
-							console.log(`[Govee] Appliance ${device.deviceName} (${deviceMac}) supportCmds:`, supportCmds);
 							return supportCmds.map((cmd) => ({
 								name: cmd,
 								value: cmd,
@@ -241,7 +238,6 @@ export class Govee implements INodeType {
 					const allCmds = new Set<string>();
 					for (const device of devices) {
 						const cmds = (device.supportCmds as string[]) ?? [];
-						console.log(`[Govee] Appliance ${device.deviceName} (${device.device}) supportCmds:`, cmds);
 						for (const cmd of cmds) {
 							allCmds.add(cmd);
 						}
@@ -333,6 +329,42 @@ export class Govee implements INodeType {
 					// ----- Get Many -----
 					if (operation === 'getAll') {
 						responseData = await getDeviceList();
+					}
+
+					// ----- Get Capabilities -----
+					else if (operation === 'getCapabilities') {
+						const deviceMac = this.getNodeParameter('device', i, '') as string;
+						const devices = await getDeviceList();
+
+						if (deviceMac) {
+							const device = devices.find((d) => d.device === deviceMac);
+							if (!device) {
+								throw new NodeOperationError(
+									this.getNode(),
+									`Device with MAC address "${deviceMac}" not found`,
+									{ itemIndex: i },
+								);
+							}
+							responseData = {
+								device: device.device,
+								deviceName: device.deviceName,
+								model: device.model,
+								controllable: device.controllable,
+								retrievable: device.retrievable,
+								supportCmds: device.supportCmds,
+								properties: device.properties,
+							} as IDataObject;
+						} else {
+							responseData = devices.map((d) => ({
+								device: d.device,
+								deviceName: d.deviceName,
+								model: d.model,
+								controllable: d.controllable,
+								retrievable: d.retrievable,
+								supportCmds: d.supportCmds,
+								properties: d.properties,
+							})) as IDataObject[];
+						}
 					}
 
 					// ----- Get (single device) -----
