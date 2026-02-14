@@ -120,6 +120,16 @@ export class Govee implements INodeType {
 			async getDeviceCommands(
 				this: ILoadOptionsFunctions,
 			): Promise<INodePropertyOptions[]> {
+				const cmdLabels: Record<string, string> = {
+					turn: 'Turn On/Off',
+					brightness: 'Brightness',
+					color: 'Color',
+					colorTem: 'Color Temperature',
+				};
+				const labelCmd = (cmd: string): INodePropertyOptions => ({
+					name: cmdLabels[cmd] ?? cmd,
+					value: cmd,
+				});
 				try {
 					const response = await goveeApiRequest.call(
 						this,
@@ -134,10 +144,7 @@ export class Govee implements INodeType {
 						const device = devices.find((d) => d.device === deviceMac);
 						if (device) {
 							const supportCmds = (device.supportCmds as string[]) ?? [];
-							return supportCmds.map((cmd) => ({
-								name: cmd,
-								value: cmd,
-							}));
+							return supportCmds.map(labelCmd);
 						}
 					}
 
@@ -149,12 +156,7 @@ export class Govee implements INodeType {
 							allCmds.add(cmd);
 						}
 					}
-					return Array.from(allCmds)
-						.sort()
-						.map((cmd) => ({
-							name: cmd,
-							value: cmd,
-						}));
+					return Array.from(allCmds).sort().map(labelCmd);
 				} catch {
 					return [];
 				}
@@ -221,16 +223,21 @@ export class Govee implements INodeType {
 					);
 					const data = response.data as IDataObject | undefined;
 					const devices = (data?.devices as IDataObject[]) ?? [];
+					const cmdLabels: Record<string, string> = {
+						turn: 'Turn On/Off',
+						mode: 'Mode',
+					};
+					const labelCmd = (cmd: string): INodePropertyOptions => ({
+						name: cmdLabels[cmd] ?? cmd,
+						value: cmd,
+					});
 					const deviceMac = this.getCurrentNodeParameter('device') as string;
 
 					if (deviceMac) {
 						const device = devices.find((d) => d.device === deviceMac);
 						if (device) {
 							const supportCmds = (device.supportCmds as string[]) ?? [];
-							return supportCmds.map((cmd) => ({
-								name: cmd,
-								value: cmd,
-							}));
+							return supportCmds.map(labelCmd);
 						}
 					}
 
@@ -242,12 +249,7 @@ export class Govee implements INodeType {
 							allCmds.add(cmd);
 						}
 					}
-					return Array.from(allCmds)
-						.sort()
-						.map((cmd) => ({
-							name: cmd,
-							value: cmd,
-						}));
+					return Array.from(allCmds).sort().map(labelCmd);
 				} catch {
 					return [];
 				}
@@ -403,20 +405,21 @@ export class Govee implements INodeType {
 						const command = this.getNodeParameter('command', i) as string;
 						const options = this.getNodeParameter('options', i, {}) as IDataObject;
 
+						// Fetch device info once for validation and range checking
+						const devices = await getDeviceList();
+						const deviceInfo = devices.find((d) => d.device === device);
+						const deviceProps = (deviceInfo?.properties as IDataObject) ?? {};
+
 						// Validate command against device capabilities if enabled
-						if (options.validateCommand) {
-							const devices = await getDeviceList();
-							const deviceInfo = devices.find((d) => d.device === device);
-							if (deviceInfo) {
-								const supportedCmds =
-									(deviceInfo.supportCmds as string[]) ?? [];
-								if (!supportedCmds.includes(command)) {
-									throw new NodeOperationError(
-										this.getNode(),
-										`Device "${device}" does not support the "${command}" command. Supported: ${supportedCmds.join(', ')}`,
-										{ itemIndex: i },
-									);
-								}
+						if (options.validateCommand && deviceInfo) {
+							const supportedCmds =
+								(deviceInfo.supportCmds as string[]) ?? [];
+							if (!supportedCmds.includes(command)) {
+								throw new NodeOperationError(
+									this.getNode(),
+									`Device "${device}" does not support the "${command}" command. Supported: ${supportedCmds.join(', ')}`,
+									{ itemIndex: i },
+								);
 							}
 						}
 
@@ -429,12 +432,25 @@ export class Govee implements INodeType {
 									i,
 								) as string;
 								break;
-							case 'brightness':
+							case 'brightness': {
 								commandValue = this.getNodeParameter(
 									'brightnessValue',
 									i,
 								) as number;
+								const brightnessRange = (deviceProps.brightness as IDataObject)?.range as IDataObject | undefined;
+								if (brightnessRange) {
+									const min = brightnessRange.min as number;
+									const max = brightnessRange.max as number;
+									if (commandValue < min || commandValue > max) {
+										throw new NodeOperationError(
+											this.getNode(),
+											`Brightness ${commandValue} is out of range for this device (${min}–${max})`,
+											{ itemIndex: i },
+										);
+									}
+								}
 								break;
+							}
 							case 'color': {
 								const hex = this.getNodeParameter(
 									'colorValue',
@@ -443,12 +459,25 @@ export class Govee implements INodeType {
 								commandValue = hexToRgb(hex);
 								break;
 							}
-							case 'colorTem':
+							case 'colorTem': {
 								commandValue = this.getNodeParameter(
 									'colorTemValue',
 									i,
 								) as number;
+								const colorTemRange = (deviceProps.colorTem as IDataObject)?.range as IDataObject | undefined;
+								if (colorTemRange) {
+									const min = colorTemRange.min as number;
+									const max = colorTemRange.max as number;
+									if (commandValue < min || commandValue > max) {
+										throw new NodeOperationError(
+											this.getNode(),
+											`Color temperature ${commandValue}K is out of range for this device (${min}K–${max}K)`,
+											{ itemIndex: i },
+										);
+									}
+								}
 								break;
+							}
 							default: {
 								// Pass-through for commands not yet handled with dedicated UI fields
 								const raw = this.getNodeParameter('genericCommandValue', i, '') as string;

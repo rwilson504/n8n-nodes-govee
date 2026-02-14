@@ -215,7 +215,7 @@ export const deviceFields: INodeProperties[] = [
 		},
 		default: 4000,
 		description:
-			"Color temperature in Kelvin (typical range: 2000-9000). Check your device's supported range from the Get Many operation's properties.colorTem.range field.",
+			"Color temperature in Kelvin (typical range: 2000-9000). The actual range is validated against your device's capabilities at execution time.",
 	},
 
 	// Generic command value — shown for any command not handled above
