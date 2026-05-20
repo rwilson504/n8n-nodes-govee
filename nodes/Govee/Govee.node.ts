@@ -1,3 +1,4 @@
+
 import type {
 	IExecuteFunctions,
 	IDataObject,
@@ -7,7 +8,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import { NodeOperationError, NodeConnectionTypes } from 'n8n-workflow';
 
 import { goveeApiRequest, hexToRgb } from './GenericFunctions';
 import { deviceOperations, deviceFields } from './DeviceDescription';
@@ -26,8 +27,8 @@ export class Govee implements INodeType {
 		defaults: {
 			name: 'Govee',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		usableAsTool: true,
 		/* eslint-disable @n8n/community-nodes/no-credential-reuse -- false positive: plugin bug with Windows drive-root-level paths (D:\) */
 		credentials: [
